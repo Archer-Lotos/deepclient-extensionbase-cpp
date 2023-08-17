@@ -6,14 +6,15 @@ set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 find_package(PythonLibs REQUIRED)
 
-set(PHP_INCLUDE_DIR php_headers)
-set(EXT_PHP_INCLUDE_DIR ext_php_headers)
-set(ZEND_INCLUDE_DIR zend_headers)
-
-include_directories(${PHP_INCLUDE_DIR})
-include_directories(${EXT_PHP_INCLUDE_DIR})
-include_directories(${ZEND_INCLUDE_DIR})
 include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(
+        ${CMAKE_SOURCE_DIR}/php_headers
+        ${CMAKE_SOURCE_DIR}/ext_php_headers
+        ${CMAKE_SOURCE_DIR}/zend_headers
+        ${CMAKE_SOURCE_DIR}/zend_headers/Optimizer
+        ${CMAKE_SOURCE_DIR}/zend
+        ${CMAKE_SOURCE_DIR}/include
+)
 
 # Find Boost package
 find_package(Boost REQUIRED COMPONENTS python)
@@ -23,6 +24,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 
 # Define your source files
 set(SOURCES
+        phpcpp.h
+        # DeepClient.cpp
+        # BoostPythonBindings.cpp
         deep_client_php_wrapper.cpp
 )
 
