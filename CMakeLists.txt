@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(deep_client_php_extension)
 
-set( CMAKE_CXX_STANDARD 14 )
+set( CMAKE_CXX_STANDARD 11 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 find_package(PythonLibs REQUIRED)
@@ -12,8 +12,32 @@ include_directories(
         ${CMAKE_SOURCE_DIR}/ext_php_headers
         ${CMAKE_SOURCE_DIR}/zend_headers
         ${CMAKE_SOURCE_DIR}/zend_headers/Optimizer
+        ${CMAKE_SOURCE_DIR}/TSRM
         ${CMAKE_SOURCE_DIR}/zend
         ${CMAKE_SOURCE_DIR}/include
+)
+
+SET(PHPCPP_COMMON_SOURCES
+        common/modifiers.cpp
+        common/streambuf.cpp
+)
+
+SET(PHPCPP_COMMON_HEADERS
+        common/extensionbase.h
+        common/includes.h
+        common/streambuf.h
+)
+
+ADD_LIBRARY(phpcpp-common STATIC
+        ${PHPCPP_COMMON_HEADERS}
+        ${PHPCPP_COMMON_SOURCES}
+)
+
+set_target_properties(phpcpp-common
+        PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 # Find Boost package

@@ -1,14 +1,3 @@
-/**
- *  Modifiers.cpp
- *
- *  In this file an enumeration type is with the possible
- *  member modifiers
- *
- *  @author Martijn Otto <martijn.otto@copernica.com>
- *  @author Emiel Bruijntjes <emiel.bruijntjes@copernica.com>
- * 
- *  @copyright 2014 Copernica BV
- */
 #include "includes.h"
 #include <php.h>
 

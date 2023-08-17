@@ -1,15 +1,3 @@
-/**
- *  Includes.h
- *
- *  Startup include file to compile the phpcpp library
- *
- *  @author Emiel Bruijntjes <emiel.bruijntjes@copernica.com>
- *  @copyright 2013 - 2022 Copernica BV
- */
-
-/**
- *  Include guard
- */
 #pragma once
 
 /**
