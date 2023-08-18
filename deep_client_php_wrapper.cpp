@@ -1,9 +1,9 @@
 #include "phpcpp.h"
 #include <string>
-#include <Python.h>
+//#include <Python.h>
 
 class GqlPhpWrapper : public Php::Base {
-public:
+/*public:
     GqlPhpWrapper() {
         Py_Initialize();
         pyModule = PyImport_ImportModule("gql");
@@ -37,17 +37,8 @@ public:
     }
 
 private:
-    PyObject* pyModule = nullptr;
+    PyObject* pyModule = nullptr;*/
 };
 
 extern "C" {
-PHPCPP_EXPORT void* get_module() {
-    static GqlPhpWrapper* gqlPhpWrapper = new GqlPhpWrapper();
-    Php::Extension extension("gql_php_wrapper", "1.0");
-
-    extension.add<executeQuery>("execute_query");
-
-    extension.add(std::move(gqlPhpWrapper));
-    return extension;
-}
 }
