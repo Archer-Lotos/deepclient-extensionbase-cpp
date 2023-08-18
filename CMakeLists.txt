@@ -1,19 +1,15 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
+cmake_minimum_required(VERSION 3.12)
+project(deep_client_php_extension)
 
-PROJECT(deep_client_php_extension)
-
-LIST(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
-
-ADD_DEFINITIONS(-D_MSC_STDINT_H_)
-ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-ADD_DEFINITIONS(-DBUILDING_PHPCPP)
-ADD_DEFINITIONS(-DZEND_WIN32_KEEP_INLINE)
+set( CMAKE_CXX_STANDARD 11 )
+set( CMAKE_CXX_STANDARD_REQUIRED ON )
 
 INCLUDE_DIRECTORIES(
   "${CMAKE_SOURCE_DIR}/php_headers"
   "${CMAKE_SOURCE_DIR}/ext_php_headers"
   "${CMAKE_SOURCE_DIR}/TSRM"
   "${CMAKE_SOURCE_DIR}/zend_headers"
+  "${CMAKE_SOURCE_DIR}/python"
 )
 
 
@@ -51,7 +47,16 @@ ADD_LIBRARY(deep_client_php_extension MODULE
 	deep_client_php_wrapper.cpp
 )
 
-TARGET_LINK_LIBRARIES(deep_client_php_extension phpcpp-common )
+# Find Boost package
+find_package(Boost REQUIRED COMPONENTS python)
+
+# Add the Boost include directory
+include_directories(${Boost_INCLUDE_DIRS})
+
+find_package(PythonLibs REQUIRED)
+
+# Link against Boost libraries
+TARGET_LINK_LIBRARIES(deep_client_php_extension phpcpp-common ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
 set_target_properties(deep_client_php_extension
   PROPERTIES
