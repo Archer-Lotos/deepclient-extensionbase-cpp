@@ -106,4 +106,10 @@ var_dump(php_deep_client_select());
 
 extension_loaded('deep_client_php_extension') or dl('deep_client_php_extension.so');
 
+
+$client = new GqlPhpWrapper();
+var_dump($client->execute_query("", ""));
+$client->select("sql query here");
+$client->insert("sql query here");
+
 ?>
