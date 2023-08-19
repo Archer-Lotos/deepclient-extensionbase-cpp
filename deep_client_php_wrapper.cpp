@@ -7,6 +7,7 @@ public:
     GqlPhpWrapper() {
         Py_Initialize();
         pyModule = PyImport_ImportModule("gql");
+        pyClientInstance = PyObject_GetAttrString(pyModule, "deep_client_interface");
     }
 
     ~GqlPhpWrapper() {
@@ -15,12 +16,12 @@ public:
         Py_Finalize();
     }
 
-    Php::Value select(const Php::Value& query) {
-        return call_python_function("select", query);
+    Php::Value select(Php::Parameters &params) {
+        return call_python_function("select", params[0]);
     }
 
-    Php::Value insert(const Php::Value& query) {
-        return call_python_function("insert", query);
+    Php::Value insert(Php::Parameters &params) {
+        return call_python_function("insert", params[0]);
     }
 
     Php::Value call_python_function(const std::string& function_name, const Php::Value& query) {
@@ -77,15 +78,15 @@ extern "C" {
     PHPCPP_EXPORT void *get_module() {
         static Php::Extension extension("deep_client_php_extension", "1.0");
 
-        /*Php::Class<GqlPhpWrapper> gqlPhpWrapper("GqlPhpWrapper");
+        Php::Class<GqlPhpWrapper> gqlPhpWrapper("GqlPhpWrapper");
         gqlPhpWrapper.method<&GqlPhpWrapper::select>("select", {
             Php::ByVal("query", Php::Type::String)
         });
         gqlPhpWrapper.method<&GqlPhpWrapper::insert>("insert", {
             Php::ByVal("query", Php::Type::String)
-        });*/
+        });
 
-        //extension.add(std::move(gqlPhpWrapper));
+        extension.add(std::move(gqlPhpWrapper));
 
         return extension;
     }
