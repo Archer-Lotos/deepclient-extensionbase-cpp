@@ -4,10 +4,21 @@
 
 class DeepClientPhpWrapper : public Php::Base {
 public:
-    DeepClientPhpWrapper() {}
+    DeepClientPhpWrapper() {
+        Py_Initialize();
+    }
 
     ~DeepClientPhpWrapper() {
+        Py_XDECREF(deepClientOptionsClass);
+        Py_XDECREF(gqlClass);
+        Py_XDECREF(clientClass);
+        Py_XDECREF(aiohttpTransportClass);
+
+        Py_XDECREF(deepClientModule);
+        Py_XDECREF(gqlModule);
+        Py_XDECREF(aiohttpModule);
         Py_XDECREF(deepClientClass);
+        Py_XDECREF(deepClient);
         Py_Finalize();
     }
 
@@ -29,26 +40,30 @@ public:
             PyObject* aiohttpTransportClass = PyObject_GetAttrString(aiohttpModule, "AIOHTTPTransport");
 
             if (deepClientModule && gqlModule && aiohttpModule) {
-                throw Php::Exception("Profit.");
+                PyObject* aiohttpTransportArgs = PyTuple_Pack(2,
+                    Py_BuildValue("s", url.c_str()),
+                    Py_BuildValue("s", ("Authorization: Bearer " + token).c_str())
+                );
+                PyObject* aiohttpTransportInstance = PyObject_CallObject(aiohttpTransportClass, aiohttpTransportArgs);
+                PyObject* clientArgs = PyTuple_Pack(2, aiohttpTransportInstance, Py_True);
+                PyObject* clientInstance = PyObject_CallObject(clientClass, clientArgs);
+
+                //PyObject* deepClientOptionsArgs = PyTuple_Pack(1, clientInstance);
+                PyObject* deepClientOptionsInstance = PyObject_CallObject(deepClientOptionsClass, clientInstance);
+
+                //PyObject* deepClientArgs = PyTuple_Pack(1, deepClientOptionsInstance);
+                PyObject* deepClient = PyObject_CallObject(deepClientClass, deepClientOptionsInstance);
+                // throw Php::Exception("Profit.");
             } else {
                 throw Php::Exception("Failed to import required Python modules");
             }
-            /*transport = Php::Object("AIOHTTPTransport", url, "Authorization: Bearer " + token);
-            client = Php::Object("Client", transport, true);
-            options = Php::Object("DeepClientOptions", client);
-            deepClient_ = Php::Object("DeepClient", options);*/
-
-            Py_XDECREF(deepClientOptionsClass);
-            Py_XDECREF(gqlClass);
-            Py_XDECREF(clientClass);
-            Py_XDECREF(aiohttpTransportClass);
-
-            Py_XDECREF(deepClientModule);
-            Py_XDECREF(gqlModule);
-            Py_XDECREF(aiohttpModule);
         } else {
             throw Php::Exception("Both token and url are required.");
         }
+    }
+
+    Php::Value getPyObject(Php::Parameters &params) {
+        return Php::Object(deepClient);
     }
 
     Php::Value select(Php::Parameters &params) {
@@ -61,8 +76,8 @@ public:
 
     Php::Value call_python_function(const std::string& function_name, const Php::Value& query) {
         Php::Value result;
-        if (deepClientModule && deepClientClass) {
-            PyObject* pyFunc = PyObject_GetAttrString(deepClientClass, function_name.c_str());
+        if (deepClientModule && deepClientClass && deepClient) {
+            PyObject* pyFunc = PyObject_GetAttrString(deepClient, function_name.c_str());
             if (pyFunc && PyCallable_Check(pyFunc)) {
                 PyObject* pyArgs = PyTuple_Pack(1, PyUnicode_DecodeFSDefault(query.stringValue().c_str()));
                 PyObject* pyResult = PyObject_CallObject(pyFunc, pyArgs);
@@ -87,6 +102,7 @@ private:
     PyObject* aiohttpModule = nullptr;
 
     PyObject* deepClientClass = nullptr;
+    PyObject* deepClient = nullptr;
     PyObject* deepClientOptionsClass = nullptr;
     PyObject* gqlClass = nullptr;
     PyObject* clientClass = nullptr;
@@ -101,6 +117,11 @@ extern "C" {
         Php::Class<DeepClientPhpWrapper> deepClientPhpWrapper("DeepClientPhpWrapper");
 
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::__construct>("__construct", {
+            Php::ByVal("token", Php::Type::String),
+            Php::ByVal("url", Php::Type::String)
+        });
+
+        deepClientPhpWrapper.method<&DeepClientPhpWrapper::getPyObject>("getPyObject", {
             Php::ByVal("token", Php::Type::String),
             Php::ByVal("url", Php::Type::String)
         });

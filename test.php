@@ -113,6 +113,7 @@ $client = new DeepClientPhpWrapper(
 );
 var_dump($client);
 var_dump($client->select(1));
+var_dump($client->getPyObject("1", "2"));
 //var_dump($client->insert("sql query here"));
 
 ?>
