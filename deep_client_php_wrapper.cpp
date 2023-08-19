@@ -4,36 +4,48 @@
 
 class DeepClientPhpWrapper : public Php::Base {
 public:
-    DeepClientPhpWrapper() {
-        Py_Initialize();
-        PyObject* deepclientModule = PyImport_ImportModule("deepclient");
-        PyObject* gqlModule = PyImport_ImportModule("gql");
-        PyObject* aiohttpModule = PyImport_ImportModule("gql.transport.aiohttp");
-
-        PyObject* deepClientClass = PyObject_GetAttrString(deepclientModule, "DeepClient");
-        PyObject* deepClientOptionsClass = PyObject_GetAttrString(deepclientModule, "DeepClientOptions");
-        PyObject* gqlClass = PyObject_GetAttrString(gqlModule, "gql");
-        PyObject* clientClass = PyObject_GetAttrString(gqlModule, "Client");
-        PyObject* aiohttpTransportClass = PyObject_GetAttrString(aiohttpModule, "AIOHTTPTransport");
-    }
+    DeepClientPhpWrapper() {}
 
     ~DeepClientPhpWrapper() {
         Py_XDECREF(deepClientClass);
-        Py_XDECREF(deepClientOptionsClass);
-        Py_XDECREF(gqlClass);
-        Py_XDECREF(clientClass);
-        Py_XDECREF(aiohttpTransportClass);
-
-        Py_DECREF(deepclientModule);
-        Py_DECREF(gqlModule);
-        Py_DECREF(aiohttpModule);
         Py_Finalize();
     }
 
     void __construct(Php::Parameters &params) {
         if (!params[0].isNull() && !params[1].isNull()) {
-            Php::Value token = params[0];
-            Php::Value url = params[1];
+            const std::string& token = params[0];
+            const std::string& url = params[1];
+
+            Py_Initialize();
+
+            PyObject* deepClientModule = PyImport_ImportModule("deepclient");
+            PyObject* gqlModule = PyImport_ImportModule("gql");
+            PyObject* aiohttpModule = PyImport_ImportModule("gql.transport.aiohttp");
+
+            PyObject* deepClientClass = PyObject_GetAttrString(deepClientModule, "DeepClient");
+            PyObject* deepClientOptionsClass = PyObject_GetAttrString(deepClientModule, "DeepClientOptions");
+            PyObject* gqlClass = PyObject_GetAttrString(gqlModule, "gql");
+            PyObject* clientClass = PyObject_GetAttrString(gqlModule, "Client");
+            PyObject* aiohttpTransportClass = PyObject_GetAttrString(aiohttpModule, "AIOHTTPTransport");
+
+            if (deepClientModule && gqlModule && aiohttpModule) {
+                throw Php::Exception("Profit.");
+            } else {
+                throw Php::Exception("Failed to import required Python modules");
+            }
+            /*transport = Php::Object("AIOHTTPTransport", url, "Authorization: Bearer " + token);
+            client = Php::Object("Client", transport, true);
+            options = Php::Object("DeepClientOptions", client);
+            deepClient_ = Php::Object("DeepClient", options);*/
+
+            Py_XDECREF(deepClientOptionsClass);
+            Py_XDECREF(gqlClass);
+            Py_XDECREF(clientClass);
+            Py_XDECREF(aiohttpTransportClass);
+
+            Py_XDECREF(deepClientModule);
+            Py_XDECREF(gqlModule);
+            Py_XDECREF(aiohttpModule);
         } else {
             throw Php::Exception("Both token and url are required.");
         }
@@ -49,7 +61,7 @@ public:
 
     Php::Value call_python_function(const std::string& function_name, const Php::Value& query) {
         Php::Value result;
-        if (deepclientModule && deepClientClass) {
+        if (deepClientModule && deepClientClass) {
             PyObject* pyFunc = PyObject_GetAttrString(deepClientClass, function_name.c_str());
             if (pyFunc && PyCallable_Check(pyFunc)) {
                 PyObject* pyArgs = PyTuple_Pack(1, PyUnicode_DecodeFSDefault(query.stringValue().c_str()));
@@ -70,7 +82,7 @@ public:
     }
 
 private:
-    PyObject* deepclientModule = nullptr;
+    PyObject* deepClientModule = nullptr;
     PyObject* gqlModule = nullptr;
     PyObject* aiohttpModule = nullptr;
 
@@ -88,7 +100,7 @@ extern "C" {
 
         Php::Class<DeepClientPhpWrapper> deepClientPhpWrapper("DeepClientPhpWrapper");
 
-        deepClientPhpWrapper.method("__construct", &DeepClientPhpWrapper::__construct, {
+        deepClientPhpWrapper.method<&DeepClientPhpWrapper::__construct>("__construct", {
             Php::ByVal("token", Php::Type::String),
             Php::ByVal("url", Php::Type::String)
         });

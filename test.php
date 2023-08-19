@@ -107,9 +107,12 @@ var_dump(php_deep_client_select());
 extension_loaded('deep_client_php_extension') or dl('deep_client_php_extension.so');
 
 
-$client = new GqlPhpWrapper();
-var_dump($client->execute_query("", ""));
-$client->select("sql query here");
-$client->insert("sql query here");
+$client = new DeepClientPhpWrapper(
+	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsiYWRtaW4iXSwieC1oYXN1cmEtZGVmYXVsdC1yb2xlIjoiYWRtaW4iLCJ4LWhhc3VyYS11c2VyLWlkIjoiMzgwIn0sImlhdCI6MTY5MTkxMTQxM30.W0GOuqOvRZrgrVZkLaceKTPBitXwR-1WlxLgxUZXOnY',
+	'http://localhost:3006/gql'
+);
+var_dump($client);
+var_dump($client->select(1));
+//var_dump($client->insert("sql query here"));
 
 ?>

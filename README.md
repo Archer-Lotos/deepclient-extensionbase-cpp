@@ -13,3 +13,9 @@ make
 
 /etc/init.d/php8.1-fpm restart
 ```
+
+#### or
+```bash
+docker build -t python-php-container .
+docker run -it --rm python-php-container
+```
