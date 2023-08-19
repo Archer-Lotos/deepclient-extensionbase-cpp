@@ -10,6 +10,8 @@ moc_*
 *.moc
 *~
 *.cbp
+*.a
+php-src
 cmake-build-debug/
 
 .idea

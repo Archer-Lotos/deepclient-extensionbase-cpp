@@ -40,5 +40,12 @@ private:
     PyObject* pyModule = nullptr;
 };
 
+
 extern "C" {
+    PHPCPP_EXPORT void *get_module() {
+        static Php::Extension extension("gql_php_extension", "1.0");
+
+
+        return extension;
+    }
 }
