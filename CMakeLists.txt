@@ -171,6 +171,9 @@ ADD_LIBRARY(phpcpp STATIC
 
 
 ADD_LIBRARY(deep_client_php_extension MODULE
+    zend/error.cpp
+    zend/exception.cpp
+    common/streambuf.cpp
 	deep_client_php_wrapper.cpp
 )
 
