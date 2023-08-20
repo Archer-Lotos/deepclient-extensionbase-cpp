@@ -9,14 +9,29 @@ private:
     std::string url = "";
     PyObject* deepClientModule = nullptr;
 
+    void initializePython() {
+        Py_Initialize();
+        PyRun_SimpleString("import sys\n"
+                            "sys.path.append('.');");
+        deepClientModule = PyImport_ImportModule("deep_client_interface");
+        if (!deepClientModule) {
+            PyErr_Print();
+            throw Php::Exception("Failed to import required Python modules");
+        }
+    }
+
+    void finalizePython() {
+        Py_XDECREF(deepClientModule);
+        Py_Finalize();
+    }
+
 public:
     DeepClientPhpWrapper() {
-        Py_Initialize();
+        initializePython();
     }
 
     ~DeepClientPhpWrapper() {
-        Py_XDECREF(deepClientModule);
-        Py_Finalize();
+        finalizePython();
     }
 
     void __construct(Php::Parameters &params) {
@@ -25,11 +40,6 @@ public:
         }
         token = params[0].stringValue();
         url = params[1].stringValue();
-
-        Py_Initialize();
-        PyRun_SimpleString("import sys\n"
-                            "sys.path.append('.');");
-        PyObject* deepClientModule = PyImport_ImportModule("deep_client_interface");
     }
 
     Php::Value select(Php::Parameters &params) {
@@ -80,16 +90,22 @@ public:
                         return "Tuple";
                     } else if (PyDict_Check(pyResult)) {
                         return "Dict";
+                    } else {
+                        throw Php::Exception("Runtime error, this type not implemented");
                     }
                     Py_DECREF(pyResult);
                 } else {
                     PyErr_Print();
+                    throw Php::Exception("Runtime error");
                 }
                 Py_DECREF(pyArgs);
             } else {
                 PyErr_Print();
+                throw Php::Exception("Failed to load required Python modules");
             }
             Py_XDECREF(pyFunc);
+        } else {
+            throw Php::Exception("Failed to import required Python modules");
         }
         return result;
     }
