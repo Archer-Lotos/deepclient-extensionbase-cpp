@@ -29,7 +29,7 @@ public:
 
             Py_Initialize();
 
-            PyObject* deepClientModule = PyImport_ImportModule("deepclient");
+            /*PyObject* deepClientModule = PyImport_ImportModule("deepclient");
             PyObject* gqlModule = PyImport_ImportModule("gql");
             PyObject* aiohttpModule = PyImport_ImportModule("gql.transport.aiohttp");
 
@@ -56,7 +56,7 @@ public:
                 // throw Php::Exception("Profit.");
             } else {
                 throw Php::Exception("Failed to import required Python modules");
-            }
+            }*/
         } else {
             throw Php::Exception("Both token and url are required.");
         }
@@ -70,31 +70,47 @@ public:
             Py_Initialize();
 
             PyObject* deepClientModule = PyImport_ImportModule("deepclient");
-            PyObject* gqlModule = PyImport_ImportModule("gql");
-            PyObject* aiohttpModule = PyImport_ImportModule("gql.transport.aiohttp");
-
             PyObject* deepClientClass = PyObject_GetAttrString(deepClientModule, "DeepClient");
-            PyObject* deepClientOptionsClass = PyObject_GetAttrString(deepClientModule, "DeepClientOptions");
-            PyObject* gqlClass = PyObject_GetAttrString(gqlModule, "gql");
-            PyObject* clientClass = PyObject_GetAttrString(gqlModule, "Client");
-            PyObject* aiohttpTransportClass = PyObject_GetAttrString(aiohttpModule, "AIOHTTPTransport");
 
-            if (deepClientModule && gqlModule && aiohttpModule) {
-                PyObject* aiohttpTransportArgs = PyTuple_Pack(2,
-                    Py_BuildValue("s", url.c_str()),
-                    Py_BuildValue("s", ("Authorization: Bearer " + token).c_str())
-                );
-                PyObject* aiohttpTransportInstance = PyObject_CallObject(aiohttpTransportClass, aiohttpTransportArgs);
-                PyObject* clientArgs = PyTuple_Pack(2, aiohttpTransportInstance, Py_True);
-                PyObject* clientInstance = PyObject_CallObject(clientClass, clientArgs);
+            const char* pythonCode = R"(
+            from deepclient import DeepClient, DeepClientOptions
+            from gql import gql, Client
+            from gql.transport.aiohttp import AIOHTTPTransport
+            import asyncio
 
-                //PyObject* deepClientOptionsArgs = PyTuple_Pack(1, clientInstance);
-                PyObject* deepClientOptionsInstance = PyObject_CallObject(deepClientOptionsClass, clientInstance);
+            def make_deep_client(token, url):
+                if not token:
+                    raise ValueError("No token provided")
+                if not url:
+                    raise ValueError("No url provided")
 
-                //PyObject* deepClientArgs = PyTuple_Pack(1, deepClientOptionsInstance);
-                PyObject* deepClient = PyObject_CallObject(deepClientClass, deepClientOptionsInstance);
+                transport = AIOHTTPTransport(url=url, headers={'Authorization': f"Bearer {token}"})
+                client = Client(transport=transport, fetch_schema_from_transport=True)
+                options = DeepClientOptions(gql_client=client)
+                deep_client = DeepClient(options)
+                return deep_client
+            )";
+
+            int success = PyRun_SimpleString(pythonCode);
+            if (success != 0) {
+                throw Php::Exception("PyRun_SimpleString");;
+            }
+
+            if (deepClientModule) {
+                /*PyObject* aiohttpTransportArgs = PyTuple_Pack(2,
+                    PyUnicode_DecodeFSDefault(url.c_str()),
+                    Py_BuildValue("{s:s}", "Authorization", ("Bearer " + token).c_str())
+                );*/
+
+                /*PyObject* deepClient = PyObject_CallObject(deepClientClass, deepClientOptionsInstance);
                 // throw Php::Exception("Profit.");
-                return Php::Object(deepClient);
+                PyObject* deepClientSelectFunc = PyObject_CallObject(deepClient, PyUnicode_DecodeFSDefault(cppSelect.c_str()));
+                const std::string& selectArgs = "1";
+                PyObject* pyResult = PyObject_CallObject(deepClientSelectFunc, PyUnicode_DecodeFSDefault(selectArgs.c_str()));
+                // Convert PyObject to Php::Object
+                return Php::Value(pyResult);*/
+                const std::string& cppSelect = "select";
+                return cppSelect;
             } else {
                 throw Php::Exception("Failed to import required Python modules");
             }
