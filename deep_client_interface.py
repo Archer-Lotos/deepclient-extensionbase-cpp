@@ -27,17 +27,16 @@ def select(token, url, exp: Union[Dict, int, List[int]], options: Dict = {}) -> 
     return result
 
 def insert(token, url, objects, options: Dict = {}) -> Dict:
-    print("insert")
-    print("objects", objects)
     result = asyncio.run(make_deep_client(token, url).insert(objects, options))
-    print("result", result)
     return result
 
 async def update(token, url, exp: Dict, value: Dict, options: Dict = {}) -> Dict:
-    return await make_deep_client(token, url).update(exp, value, options)
+    result = asyncio.run(make_deep_client(token, url).update(exp, value, options))
+    return result
 
 async def delete(token, url, exp: Union[Dict, int, List[int]], options: Dict = {}) -> Dict:
-    return await make_deep_client(token, url).delete(exp, options)
+    result = asyncio.run(make_deep_client(token, url).delete(exp, options))
+    return result
 
 async def serial(token, url, AsyncSerialParams: Dict):
     return await make_deep_client(token, url).serial(AsyncSerialParams)

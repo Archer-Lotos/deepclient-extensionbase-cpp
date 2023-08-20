@@ -127,7 +127,6 @@ PyObject* PyPhpBridge::convertPhpValueToPyObject(const Php::Value& phpValue) {
         if (phpValue.count() == 0) {
             return PyList_New(0);
         } else if (PyPhpBridge::isAssociativeArray(phpValue)) {
-            throw Php::Exception("AssociativeArray");
             return convertPhpArrayToPyDict(phpValue);
         } else {
             return convertPhpArrayToPyList(phpValue);
