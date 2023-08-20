@@ -40,6 +40,22 @@ public:
         return call_python_function("insert", params[0]);
     }
 
+    Php::Value update(Php::Parameters &params) {
+        return call_python_function("update", params[0]);
+    }
+
+    Php::Value deleteFunc(Php::Parameters &params) {
+        return call_python_function("delete", params[0]);
+    }
+
+    Php::Value serial(Php::Parameters &params) {
+        return call_python_function("serial", params[0]);
+    }
+
+    Php::Value id(Php::Parameters &params) {
+        return call_python_function("id", params[0]);
+    }
+
     Php::Value call_python_function(const std::string& function_name, const Php::Value& query) {
         Php::Value result;
         if (deepClientModule) {
@@ -58,6 +74,12 @@ public:
                     } else if (PyUnicode_Check(pyResult)) {
                         const char* str_value = PyUnicode_AsUTF8(pyResult);
                         return str_value;
+                    } else if (PyList_Check(pyResult)) {
+                        return "List";
+                    } else if (PyTuple_Check(pyResult)) {
+                        return "Tuple";
+                    } else if (PyDict_Check(pyResult)) {
+                        return "Dict";
                     }
                     Py_DECREF(pyResult);
                 } else {
@@ -89,6 +111,18 @@ extern "C" {
             Php::ByVal("query", Php::Type::String)
         });
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::insert>("insert", {
+            Php::ByVal("query", Php::Type::String)
+        });
+        deepClientPhpWrapper.method<&DeepClientPhpWrapper::update>("update", {
+            Php::ByVal("query", Php::Type::String)
+        });
+        deepClientPhpWrapper.method<&DeepClientPhpWrapper::deleteFunc>("delete", {
+            Php::ByVal("query", Php::Type::String)
+        });
+        deepClientPhpWrapper.method<&DeepClientPhpWrapper::serial>("serial", {
+            Php::ByVal("query", Php::Type::String)
+        });
+        deepClientPhpWrapper.method<&DeepClientPhpWrapper::id>("id", {
             Php::ByVal("query", Php::Type::String)
         });
         extension.add(std::move(deepClientPhpWrapper));

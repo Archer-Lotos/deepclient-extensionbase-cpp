@@ -35,14 +35,14 @@ async def delete(token, url, exp: Union[Dict, int, List[int]], options: Dict = {
 async def serial(token, url, AsyncSerialParams: Dict):
     return await make_deep_client(token, url).serial(AsyncSerialParams)
 
+async def id(token, url, start: Any, *path: Any) -> int:
+    return await make_deep_client(token, url).id(start, path)
+
 async def reserve(token, url):
     return await make_deep_client(token, url).reserve()
 
 async def wait_for(token, url):
     return await make_deep_client(token, url).wait_for()
-
-async def id(token, url, start: Any, *path: Any) -> int:
-    return await make_deep_client(token, url).id(start, path)
 
 def id_local(token, url):
     return make_deep_client(token, url).id_local()
