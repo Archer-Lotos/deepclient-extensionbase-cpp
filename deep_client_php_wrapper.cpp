@@ -1,81 +1,4 @@
-#include "phpcpp.h"
-#include <string>
-#include <Python.h>
-
-Php::Value convertPyDictToPhpArray(PyObject* pyDict);
-Php::Value convertPyListToPhpArray(PyObject* pyList);
-
-Php::Value convertPyDictToPhpArray(PyObject* pyDict) {
-    Php::Value phpArray;
-
-    PyObject* pyKey;
-    PyObject* pyValue;
-    Py_ssize_t pos = 0;
-
-    while (PyDict_Next(pyDict, &pos, &pyKey, &pyValue)) {
-        Php::Value phpKey(PyUnicode_AsUTF8(pyKey));
-
-        if (PyLong_Check(pyValue)) {
-            phpArray[phpKey] = Php::Value((long)PyLong_AsLong(pyValue));
-        } else if (PyFloat_Check(pyValue)) {
-            phpArray[phpKey] = Php::Value(PyFloat_AsDouble(pyValue));
-        } else if (PyUnicode_Check(pyValue)) {
-            phpArray[phpKey] = Php::Value(PyUnicode_AsUTF8(pyValue));
-        } else if (PyDict_Check(pyValue)) {
-            phpArray[phpKey] = convertPyDictToPhpArray(pyValue);
-        } else if (PyList_Check(pyValue)) {
-            phpArray[phpKey] = convertPyListToPhpArray(pyValue);
-        } else {
-            phpArray[phpKey] = Php::Value();
-        }
-    }
-
-    return phpArray;
-}
-
-Php::Value convertPyListToPhpArray(PyObject* pyList) {
-    Php::Value phpArray;
-
-    Py_ssize_t size = PyList_Size(pyList);
-    for (Py_ssize_t i = 0; i < size; ++i) {
-        PyObject* pyValue = PyList_GetItem(pyList, i);
-
-        if (PyLong_Check(pyValue)) {
-            phpArray[i] = Php::Value((long)PyLong_AsLong(pyValue));
-        } else if (PyFloat_Check(pyValue)) {
-            phpArray[i] = Php::Value(PyFloat_AsDouble(pyValue));
-        } else if (PyUnicode_Check(pyValue)) {
-            phpArray[i] = Php::Value(PyUnicode_AsUTF8(pyValue));
-        } else if (PyList_Check(pyValue)) {
-            phpArray[i] = convertPyListToPhpArray(pyValue);
-        } else if (PyDict_Check(pyValue)) {
-            phpArray[i] = convertPyDictToPhpArray(pyValue);
-        } else {
-            phpArray[i] = Php::Value();
-        }
-    }
-
-    return phpArray;
-}
-
-std::string getPythonErrorText() {
-    PyObject *exc_type, *exc_value, *exc_traceback;
-    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
-    
-    if (exc_value) {
-        PyObject *str_exc_value = PyObject_Str(exc_value);
-        if (str_exc_value) {
-            const char *c_str = PyUnicode_AsUTF8(str_exc_value);
-            std::string errorText(c_str);
-            Py_XDECREF(str_exc_value);
-            PyErr_Restore(exc_type, exc_value, exc_traceback);
-            return errorText;
-        }
-    }
-    
-    PyErr_Restore(exc_type, exc_value, exc_traceback);
-    return "Unknown error";
-}
+#include "PyPhpBridge.h"
 
 class DeepClientPhpWrapper : public Php::Base {
 
@@ -149,7 +72,7 @@ public:
                 PyObject* pyArgs = PyTuple_Pack(3,
                     Py_BuildValue("s", token.c_str()),
                     Py_BuildValue("s", url.c_str()),
-                    PyUnicode_DecodeFSDefault(query.stringValue().c_str())
+                    PyPhpBridge::convertPhpValueToPyObject(query)
                 );
                 PyObject* pyResult = PyObject_CallObject(pyFunc, pyArgs);
                 if (pyResult) {
@@ -164,11 +87,11 @@ public:
                         const char* str_value = PyUnicode_AsUTF8(pyResult);
                         return str_value;
                     } else if (PyList_Check(pyResult)) {
-                        return convertPyListToPhpArray(pyResult);
+                        return PyPhpBridge::convertPyListToPhpArray(pyResult);
                     } else if (PyTuple_Check(pyResult)) {
                         return "Tuple";
                     } else if (PyDict_Check(pyResult)) {
-                        return convertPyDictToPhpArray(pyResult);
+                        return PyPhpBridge::convertPyDictToPhpArray(pyResult);
                     } else if (PyBool_Check(pyResult)) {
                         return "Bool";
                     } else if (PySet_Check(pyResult)) {
@@ -184,7 +107,7 @@ public:
                     } else if (PyCallable_Check(pyResult)) {
                         return "Callable";
                     } else {
-                        std::string errorText = getPythonErrorText();
+                        std::string errorText = PyPhpBridge::getPythonErrorText();
                         throw Php::Exception(errorText.c_str());
                         //throw Php::Exception("Runtime error, this type not implemented");
                     }
