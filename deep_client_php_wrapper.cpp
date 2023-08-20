@@ -71,7 +71,11 @@ public:
         if (deepClientModule) {
             PyObject* pyFunc = PyObject_GetAttrString(deepClientModule, function_name.c_str());
             if (pyFunc && PyCallable_Check(pyFunc)) {
-                PyObject* pyArgs = PyTuple_Pack(1, PyUnicode_DecodeFSDefault(query.stringValue().c_str()));
+                PyObject* pyArgs = PyTuple_Pack(3,
+                    Py_BuildValue("s", token.c_str()),
+                    Py_BuildValue("s", url.c_str()),
+                    PyUnicode_DecodeFSDefault(query.stringValue().c_str())
+                );
                 PyObject* pyResult = PyObject_CallObject(pyFunc, pyArgs);
                 if (pyResult) {
                     //result = Php::Value(PyUnicode_AsUTF8(pyResult));
@@ -90,6 +94,20 @@ public:
                         return "Tuple";
                     } else if (PyDict_Check(pyResult)) {
                         return "Dict";
+                    } else if (PyBool_Check(pyResult)) {
+                        return "Bool";
+                    } else if (PySet_Check(pyResult)) {
+                        return "Set";
+                    } else if (PyFrozenSet_Check(pyResult)) {
+                        return "FrozenSet";
+                    } else if (PyBytes_Check(pyResult)) {
+                        return "Bytes";
+                    } else if (PyByteArray_Check(pyResult)) {
+                        return "ByteArray";
+                    } else if (PyMemoryView_Check(pyResult)) {
+                        return "MemoryView";
+                    } else if (PyCallable_Check(pyResult)) {
+                        return "Callable";
                     } else {
                         throw Php::Exception("Runtime error, this type not implemented");
                     }

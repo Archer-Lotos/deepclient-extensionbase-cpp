@@ -2,6 +2,7 @@ from typing import Any, Optional, Union, Dict, List
 from deepclient import DeepClient, DeepClientOptions
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
+import asyncio
 
 global_deep_client = None
 def make_deep_client(token, url):
@@ -21,8 +22,8 @@ def make_deep_client(token, url):
 
     return global_deep_client
 
-async def select(token, url, exp: Union[Dict, int, List[int]], options: Dict = {}) -> Dict:
-    return await make_deep_client(token, url).select(exp, options)
+def select(token, url, exp: Union[Dict, int, List[int]], options: Dict = {}) -> Dict:
+    return asyncio.run(make_deep_client(token, url).select(exp, options))
 
 async def insert(token, url, objects, options: Dict = {}) -> Dict:
     return await make_deep_client(token, url).insert(objects, options)
