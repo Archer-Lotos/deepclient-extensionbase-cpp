@@ -7,8 +7,14 @@ $client = new DeepClientPhpWrapper(
 	'http://localhost:3006/gql'
 );
 var_dump($client);
-var_dump($client->select(1));
-var_dump($client->insert(1));
+
+$new_record = array(
+    "type_id" => 58,
+    "from_id" => 0,
+    "to_id" => 0
+);
+
+var_dump($client->insert($new_record));
 //var_dump($client->insert("sql query here"));
 
 ?>

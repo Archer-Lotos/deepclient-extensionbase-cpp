@@ -2,6 +2,8 @@
 #include <string>
 #include <Python.h>
 
+Php::Value convertPyDictToPhpArray(PyObject* pyDict);
+Php::Value convertPyListToPhpArray(PyObject* pyList);
 
 Php::Value convertPyDictToPhpArray(PyObject* pyDict) {
     Php::Value phpArray;
@@ -54,6 +56,25 @@ Php::Value convertPyListToPhpArray(PyObject* pyList) {
     }
 
     return phpArray;
+}
+
+std::string getPythonErrorText() {
+    PyObject *exc_type, *exc_value, *exc_traceback;
+    PyErr_Fetch(&exc_type, &exc_value, &exc_traceback);
+    
+    if (exc_value) {
+        PyObject *str_exc_value = PyObject_Str(exc_value);
+        if (str_exc_value) {
+            const char *c_str = PyUnicode_AsUTF8(str_exc_value);
+            std::string errorText(c_str);
+            Py_XDECREF(str_exc_value);
+            PyErr_Restore(exc_type, exc_value, exc_traceback);
+            return errorText;
+        }
+    }
+    
+    PyErr_Restore(exc_type, exc_value, exc_traceback);
+    return "Unknown error";
 }
 
 class DeepClientPhpWrapper : public Php::Base {
@@ -163,7 +184,9 @@ public:
                     } else if (PyCallable_Check(pyResult)) {
                         return "Callable";
                     } else {
-                        throw Php::Exception("Runtime error, this type not implemented");
+                        std::string errorText = getPythonErrorText();
+                        throw Php::Exception(errorText.c_str());
+                        //throw Php::Exception("Runtime error, this type not implemented");
                     }
                     Py_DECREF(pyResult);
                 } else {
