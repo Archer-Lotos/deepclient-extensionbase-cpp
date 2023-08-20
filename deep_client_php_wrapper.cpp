@@ -82,16 +82,25 @@ public:
                 PyObject* deepClient = PyObject_CallObject(makeDeepClientFunc, aiohttpTransportArgs);
 
                 if (deepClient) {
-                    return 9;
+                    if (PyLong_Check(deepClient)) {
+                        long int_value = PyLong_AsLong(deepClient);
+                        return int_value;
+                    } else if (PyFloat_Check(deepClient)) {
+                        double float_value = PyFloat_AsDouble(deepClient);
+                        return float_value;
+                    } else if (PyUnicode_Check(deepClient)) {
+                        const char* str_value = PyUnicode_AsUTF8(deepClient);
+                        return str_value;
+                    }
+                    return Php::Value(deepClient);
+                    const std::string& cppSelect = "select";
+                    PyObject* deepClientSelectFunc = PyObject_CallObject(deepClient, PyUnicode_DecodeFSDefault(cppSelect.c_str()));
+                    const std::string& selectArgs = "1";
+                    PyObject* pyResult = PyObject_CallObject(deepClientSelectFunc, PyUnicode_DecodeFSDefault(selectArgs.c_str()));
+                    return Php::Value(pyResult);
                 } else {
-                    throw Php::Exception("deepClient");
+                    throw Php::Exception("Runtime error in DeepClient");
                 }
-
-                /*const std::string& cppSelect = "select";
-                PyObject* deepClientSelectFunc = PyObject_CallObject(deepClient, PyUnicode_DecodeFSDefault(cppSelect.c_str()));
-                const std::string& selectArgs = "1";
-                PyObject* pyResult = PyObject_CallObject(deepClientSelectFunc, PyUnicode_DecodeFSDefault(selectArgs.c_str()));
-                return Php::Value(pyResult);*/
                 //return cppSelect;
             } else {
                 throw Php::Exception("Failed to import required Python modules");
@@ -146,6 +155,9 @@ private:
     PyObject* gqlClass = nullptr;
     PyObject* clientClass = nullptr;
     PyObject* aiohttpTransportClass = nullptr;
+
+    const std::string& token = "";
+    const std::string& url = "";
 };
 
 

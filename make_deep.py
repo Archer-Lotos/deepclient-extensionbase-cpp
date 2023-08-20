@@ -12,7 +12,7 @@ def make_deep_client(token, url):
     client = Client(transport=transport, fetch_schema_from_transport=True)
     options = DeepClientOptions(gql_client=client)
     deep_client = DeepClient(options)
-    print(deep_client)
+    # print(deep_client)
     return deep_client
 
 '''
