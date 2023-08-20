@@ -21,8 +21,35 @@ Php::Value convertPyDictToPhpArray(PyObject* pyDict) {
             phpArray[phpKey] = Php::Value(PyUnicode_AsUTF8(pyValue));
         } else if (PyDict_Check(pyValue)) {
             phpArray[phpKey] = convertPyDictToPhpArray(pyValue);
+        } else if (PyList_Check(pyValue)) {
+            phpArray[phpKey] = convertPyListToPhpArray(pyValue);
         } else {
             phpArray[phpKey] = Php::Value();
+        }
+    }
+
+    return phpArray;
+}
+
+Php::Value convertPyListToPhpArray(PyObject* pyList) {
+    Php::Value phpArray;
+
+    Py_ssize_t size = PyList_Size(pyList);
+    for (Py_ssize_t i = 0; i < size; ++i) {
+        PyObject* pyValue = PyList_GetItem(pyList, i);
+
+        if (PyLong_Check(pyValue)) {
+            phpArray[i] = Php::Value((long)PyLong_AsLong(pyValue));
+        } else if (PyFloat_Check(pyValue)) {
+            phpArray[i] = Php::Value(PyFloat_AsDouble(pyValue));
+        } else if (PyUnicode_Check(pyValue)) {
+            phpArray[i] = Php::Value(PyUnicode_AsUTF8(pyValue));
+        } else if (PyList_Check(pyValue)) {
+            phpArray[i] = convertPyListToPhpArray(pyValue);
+        } else if (PyDict_Check(pyValue)) {
+            phpArray[i] = convertPyDictToPhpArray(pyValue);
+        } else {
+            phpArray[i] = Php::Value();
         }
     }
 
@@ -116,7 +143,7 @@ public:
                         const char* str_value = PyUnicode_AsUTF8(pyResult);
                         return str_value;
                     } else if (PyList_Check(pyResult)) {
-                        return "List";
+                        return convertPyListToPhpArray(pyResult);
                     } else if (PyTuple_Check(pyResult)) {
                         return "Tuple";
                     } else if (PyDict_Check(pyResult)) {
