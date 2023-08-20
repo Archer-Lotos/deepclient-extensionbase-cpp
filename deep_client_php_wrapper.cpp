@@ -2,6 +2,33 @@
 #include <string>
 #include <Python.h>
 
+
+Php::Value convertPyDictToPhpArray(PyObject* pyDict) {
+    Php::Value phpArray;
+
+    PyObject* pyKey;
+    PyObject* pyValue;
+    Py_ssize_t pos = 0;
+
+    while (PyDict_Next(pyDict, &pos, &pyKey, &pyValue)) {
+        Php::Value phpKey(PyUnicode_AsUTF8(pyKey));
+
+        if (PyLong_Check(pyValue)) {
+            phpArray[phpKey] = Php::Value((long)PyLong_AsLong(pyValue));
+        } else if (PyFloat_Check(pyValue)) {
+            phpArray[phpKey] = Php::Value(PyFloat_AsDouble(pyValue));
+        } else if (PyUnicode_Check(pyValue)) {
+            phpArray[phpKey] = Php::Value(PyUnicode_AsUTF8(pyValue));
+        } else if (PyDict_Check(pyValue)) {
+            phpArray[phpKey] = convertPyDictToPhpArray(pyValue);
+        } else {
+            phpArray[phpKey] = Php::Value();
+        }
+    }
+
+    return phpArray;
+}
+
 class DeepClientPhpWrapper : public Php::Base {
 
 private:
@@ -93,7 +120,7 @@ public:
                     } else if (PyTuple_Check(pyResult)) {
                         return "Tuple";
                     } else if (PyDict_Check(pyResult)) {
-                        return "Dict";
+                        return convertPyDictToPhpArray(pyResult);
                     } else if (PyBool_Check(pyResult)) {
                         return "Bool";
                     } else if (PySet_Check(pyResult)) {
