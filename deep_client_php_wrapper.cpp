@@ -142,22 +142,22 @@ extern "C" {
         });
 
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::select>("select", {
-            Php::ByVal("query", Php::Type::String)
+            Php::ByVal("query")
         });
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::insert>("insert", {
-            Php::ByVal("query", Php::Type::String)
+            Php::ByVal("query")
         });
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::update>("update", {
-            Php::ByVal("query", Php::Type::String)
+            Php::ByVal("query")
         });
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::deleteFunc>("delete", {
-            Php::ByVal("query", Php::Type::String)
+            Php::ByVal("query")
         });
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::serial>("serial", {
-            Php::ByVal("query", Php::Type::String)
+            Php::ByVal("query")
         });
         deepClientPhpWrapper.method<&DeepClientPhpWrapper::id>("id", {
-            Php::ByVal("query", Php::Type::String)
+            Php::ByVal("query")
         });
         extension.add(std::move(deepClientPhpWrapper));
 

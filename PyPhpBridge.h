@@ -7,6 +7,7 @@
 
 class PyPhpBridge {
 public:
+    static bool isAssociativeArray(const Php::Value& phpArray);
     static Php::Value convertPyDictToPhpArray(PyObject* pyDict);
     static Php::Value convertPyListToPhpArray(PyObject* pyList);
     static PyObject* convertPhpArrayToPyDict(const Php::Value& phpArray);

@@ -13,8 +13,9 @@ $new_record = array(
     "from_id" => 0,
     "to_id" => 0
 );
+var_dump($client->select($new_record));
 
-var_dump($client->insert($new_record));
+//var_dump($client->insert($new_record));
 //var_dump($client->insert("sql query here"));
 
 ?>

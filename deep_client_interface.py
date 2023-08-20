@@ -27,6 +27,8 @@ def select(token, url, exp: Union[Dict, int, List[int]], options: Dict = {}) -> 
     return result
 
 def insert(token, url, objects, options: Dict = {}) -> Dict:
+    print("insert")
+    print("objects", objects)
     result = asyncio.run(make_deep_client(token, url).insert(objects, options))
     print("result", result)
     return result

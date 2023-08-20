@@ -104,21 +104,36 @@ PyObject* PyPhpBridge::convertPhpArrayToPyList(const Php::Value& phpArray) {
     return pyList;
 }
 
+bool PyPhpBridge::isAssociativeArray(const Php::Value& phpArray) {
+    if (!phpArray.isArray()) {
+        return false;
+    }
+
+    for (auto& pair : phpArray) {
+        if (!pair.first.isNumeric()) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 PyObject* PyPhpBridge::convertPhpValueToPyObject(const Php::Value& phpValue) {
     if (phpValue.isNumeric()) {
         return PyFloat_FromDouble(phpValue.numericValue());
     } else if (phpValue.isString()) {
-        return PyUnicode_DecodeUTF8(phpValue.stringValue().c_str(), phpValue.stringValue().length(), "replace");
+        return PyUnicode_DecodeFSDefault(phpValue.stringValue().c_str());
     } else if (phpValue.isArray()) {
         if (phpValue.count() == 0) {
             return PyList_New(0);
-        } else if (phpValue.instanceOf("Php\\AssociativeArray")) {
+        } else if (PyPhpBridge::isAssociativeArray(phpValue)) {
+            throw Php::Exception("AssociativeArray");
             return convertPhpArrayToPyDict(phpValue);
         } else {
             return convertPhpArrayToPyList(phpValue);
         }
     } else {
-        Py_RETURN_NONE;
+        // Py_RETURN_NONE;
+        throw Php::Exception("Runtime error, variable undefined");
     }
 }
