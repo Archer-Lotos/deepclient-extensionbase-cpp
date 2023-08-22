@@ -114,7 +114,7 @@ public:
                     Py_DECREF(pyResult);
                 } else {
                     PyErr_Print();
-                    throw Php::Exception("Runtime error");
+                    throw Php::Exception(PyPhpBridge::getPythonErrorText());
                 }
                 Py_DECREF(pyArgs);
             } else {
